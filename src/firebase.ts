@@ -1,14 +1,13 @@
 // sosyal-bagis-admin/src/firebase.ts
-import { initializeApp } from "firebase/app";
-import type { FirebaseApp } from "firebase/app"; // Tip-sadece import
+import { initializeApp, getApp, getApps } from "firebase/app";
+import type { FirebaseApp } from "firebase/app"; // DÜZELTME: Tip-sadece import
 import { getAuth } from "firebase/auth";
-import type { Auth } from "firebase/auth"; // Tip-sadece import
-import { getFirestore, Firestore } from "firebase/firestore"; // Firestore tipi için hata yoktu, ama tutarlılık için eklenebilir veya olduğu gibi bırakılabilir. Şimdilik olduğu gibi bırakıyorum.
+import type { Auth } from "firebase/auth"; // DÜZELTME: Tip-sadece import
+import { getFirestore, type Firestore } from "firebase/firestore"; // DÜZELTME: Firestore tipi için de type-only
 import { getStorage } from "firebase/storage";
-import type { FirebaseStorage } from "firebase/storage"; // Tip-sadece import
+import type { FirebaseStorage } from "firebase/storage"; // DÜZELTME: Tip-sadece import
 
 // Firebase projenizin yapılandırma bilgileri Vite ortam değişkenlerinden alınır.
-// .env dosyanızda VITE_FIREBASE_API_KEY=değeriniz şeklinde tanımlanmalıdır.
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -16,20 +15,27 @@ const firebaseConfig = {
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID, // Bu opsiyoneldir
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
-// Ortam değişkenlerinin yüklenip yüklenmediğini kontrol edebilirsiniz (isteğe bağlı)
 if (!firebaseConfig.apiKey) {
-  console.error("VITE_FIREBASE_API_KEY .env dosyasında bulunamadı veya yüklenemedi!");
-  // Burada bir hata fırlatabilir veya varsayılan bir davranış belirleyebilirsiniz.
+  console.error(
+    "FIREBASE AYARLARI EKSİK: VITE_FIREBASE_API_KEY .env dosyasında bulunamadı veya yüklenemedi!" +
+    " Lütfen .env dosyanızı kontrol edin ve Vite'nin ortam değişkenlerini doğru yüklediğinden emin olun." +
+    " Proje ana dizininde .env dosyası örneği: VITE_FIREBASE_API_KEY=AIzaSy..."
+  );
 }
 
-// Firebase uygulamasını başlat
-const app: FirebaseApp = initializeApp(firebaseConfig);
+let app: FirebaseApp;
+if (!getApps().length) {
+  app = initializeApp(firebaseConfig);
+  console.log("Firebase uygulaması başarıyla başlatıldı.");
+} else {
+  app = getApp();
+  console.log("Mevcut Firebase uygulaması kullanılıyor.");
+}
 
-// Kullanılacak Firebase servislerini dışa aktar
 export const authAdmin: Auth = getAuth(app);
-export const dbAdmin: Firestore = getFirestore(app); // Firestore tipi burada kullanılıyor
+export const dbAdmin: Firestore = getFirestore(app);
 export const storageAdmin: FirebaseStorage = getStorage(app);
 export default app;
