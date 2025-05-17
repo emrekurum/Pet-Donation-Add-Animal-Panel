@@ -1,10 +1,10 @@
 // src/components/AddAnimalForm.tsx
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react'; // useCallback kaldırıldı
 import type { ChangeEvent, FormEvent } from 'react';
-import { dbAdmin } from '../firebase'; // storageAdmin kaldırıldı
+import { dbAdmin } from '../firebase';
 import {
   collection, addDoc, serverTimestamp, getDocs,
-  doc, getDoc, updateDoc, // Firestore'dan doc, getDoc, updateDoc import edildi
+  doc, getDoc, updateDoc,
   type QueryDocumentSnapshot, type DocumentData
 } from 'firebase/firestore';
 
@@ -21,15 +21,14 @@ interface AnimalFormData {
   gender: string;
   description: string;
   imageUrl: string;
-  photoUrlsInput: string; // Kullanıcıdan virgülle ayrılmış URL'leri almak için
+  photoUrlsInput: string;
   needs: string;
   selectedShelterId: string;
-  // virtualAdoptersCount: number; // Bu alan Firestore'a yazılırken 0 olarak ayarlanacak
 }
 
 interface AddAnimalFormProps {
-  animalIdToEdit?: string | null; // Düzenlenecek hayvanın ID'si
-  onFormClose?: () => void;      // Form kapandığında çağrılacak fonksiyon
+  animalIdToEdit?: string | null;
+  onFormClose?: () => void;
 }
 
 const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ animalIdToEdit, onFormClose }) => {
@@ -49,13 +48,12 @@ const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ animalIdToEdit, onFormClo
 
   const [loadingSubmit, setLoadingSubmit] = useState(false);
   const [loadingShelters, setLoadingShelters] = useState(true);
-  const [loadingInitialData, setLoadingInitialData] = useState(false); // Düzenleme için veri yükleme
+  const [loadingInitialData, setLoadingInitialData] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
   const isEditMode = Boolean(animalIdToEdit);
 
-  // Barınakları çekme
   useEffect(() => {
     const fetchShelters = async () => {
       setLoadingShelters(true);
@@ -69,7 +67,7 @@ const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ animalIdToEdit, onFormClo
           })
         );
         setShelters(sheltersList);
-        if (sheltersList.length > 0 && !isEditMode) { // Sadece yeni ekleme modunda varsayılanı ayarla
+        if (sheltersList.length > 0 && !isEditMode) {
           setFormData(prev => ({ ...prev, selectedShelterId: sheltersList[0].id }));
         } else if (sheltersList.length === 0) {
           setError('Hiç barınak bulunamadı. Lütfen önce bir barınak ekleyin.');
@@ -82,9 +80,8 @@ const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ animalIdToEdit, onFormClo
       }
     };
     fetchShelters();
-  }, [isEditMode]); // isEditMode değiştiğinde de çalışabilir, ama genellikle bir kere yeterli
+  }, [isEditMode]);
 
-  // Düzenleme modu için hayvan verilerini çekme
   useEffect(() => {
     if (isEditMode && animalIdToEdit) {
       setLoadingInitialData(true);
@@ -102,13 +99,13 @@ const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ animalIdToEdit, onFormClo
               gender: animalDataFromDb.gender || 'Dişi',
               description: animalDataFromDb.description || '',
               imageUrl: animalDataFromDb.imageUrl || '',
-              photoUrlsInput: (animalDataFromDb.photos as string[] || []).join(', '), // Diziyi string'e çevir
-              needs: (animalDataFromDb.needs as string[] || []).join(', '), // Diziyi string'e çevir
+              photoUrlsInput: (animalDataFromDb.photos as string[] || []).join(', '),
+              needs: (animalDataFromDb.needs as string[] || []).join(', '),
               selectedShelterId: animalDataFromDb.shelterId || (shelters.length > 0 ? shelters[0].id : ''),
             });
           } else {
             setError('Düzenlenecek hayvan bulunamadı.');
-            if (onFormClose) onFormClose(); // Hayvan yoksa formu kapat
+            if (onFormClose) onFormClose();
           }
         } catch (err) {
           console.error("Hayvan verisi çekilirken hata (düzenleme):", err);
@@ -119,7 +116,6 @@ const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ animalIdToEdit, onFormClo
       };
       fetchAnimalData();
     } else if (!isEditMode) {
-        // Yeni ekleme modu için formu sıfırla (barınak seçimi hariç)
         setFormData(prev => ({
             name: '', type: 'Köpek', breed: '', age: '', gender: 'Dişi',
             description: '', imageUrl: '', photoUrlsInput: '', needs: '',
@@ -170,7 +166,6 @@ const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ animalIdToEdit, onFormClo
         imageUrl: formData.imageUrl.trim(),
         photos: photoUrlsArray,
         needs: formData.needs.split(',').map(need => need.trim()).filter(need => need),
-        // virtualAdoptersCount: isEditMode ? animal?.virtualAdoptersCount : 0, // Düzenlemede mevcut değeri koru
       };
 
       if (isEditMode && animalIdToEdit) {
@@ -188,14 +183,13 @@ const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ animalIdToEdit, onFormClo
           virtualAdoptersCount: 0,
         });
         setSuccess(`${formData.name} başarıyla ${selectedShelter.name} barınağına eklendi!`);
-        // Yeni ekleme sonrası formu sıfırla
         setFormData(prev => ({
             name: '', type: 'Köpek', breed: '', age: '', gender: 'Dişi',
             description: '', imageUrl: '', photoUrlsInput: '', needs: '',
-            selectedShelterId: prev.selectedShelterId, // Barınak seçimini koru
+            selectedShelterId: prev.selectedShelterId,
         }));
       }
-      if(onFormClose) onFormClose(); // İşlem sonrası formu kapat
+      if(onFormClose) onFormClose();
 
     } catch (err: unknown) {
       console.error(`Hayvan ${isEditMode ? 'güncellenirken' : 'eklenirken'} hata:`, err);
@@ -206,7 +200,7 @@ const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ animalIdToEdit, onFormClo
     }
   };
 
-  const formStyles = { /* ... Önceki AddAnimalForm'daki stil nesnesi (tasarım güncellemesi yapılmış hali) ... */
+  const formStyles = { /* ... Önceki stil tanımlamaları ... */
     formContainer: { maxWidth: '750px', margin: '0 auto 30px auto', padding: '30px', backgroundColor: '#ffffff', borderRadius: '12px', boxShadow: '0 8px 25px rgba(0,0,0,0.07)', border: '1px solid #e9ecef', },
     formTitle: { textAlign: 'center' as const, color: '#2c3e50', marginBottom: '30px', fontSize: '1.8em', fontWeight: '600' as const, },
     formGroup: { marginBottom: '25px', },
@@ -232,7 +226,6 @@ const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ animalIdToEdit, onFormClo
       {error && <div style={{...formStyles.message, ...formStyles.errorMessage}}>{error}</div>}
       {success && <div style={{...formStyles.message, ...formStyles.successMessage}}>{success}</div>}
       <form onSubmit={handleSubmit}>
-        {/* Form alanları aynı kalacak, sadece buton metni değişecek */}
         <div style={formStyles.formGroup}>
           <label htmlFor="selectedShelterId" style={formStyles.label}>Barınak Seçin:*</label>
           <select id="selectedShelterId" name="selectedShelterId" value={formData.selectedShelterId} onChange={handleChange} style={formStyles.select} required >
@@ -240,12 +233,10 @@ const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ animalIdToEdit, onFormClo
             {shelters.map(shelter => ( <option key={shelter.id} value={shelter.id}>{shelter.name}</option> ))}
           </select>
         </div>
-
         <div style={formStyles.formGroup}>
           <label htmlFor="name" style={formStyles.label}>Hayvan Adı:*</label>
           <input type="text" id="name" name="name" value={formData.name} onChange={handleChange} style={formStyles.input} required />
         </div>
-
         <div style={formStyles.formGroup}>
           <label htmlFor="type" style={formStyles.label}>Tür:*</label>
           <select id="type" name="type" value={formData.type} onChange={handleChange} style={formStyles.select} required >
@@ -257,39 +248,32 @@ const AddAnimalForm: React.FC<AddAnimalFormProps> = ({ animalIdToEdit, onFormClo
           <label htmlFor="breed" style={formStyles.label}>Cins:</label>
           <input type="text" id="breed" name="breed" value={formData.breed} onChange={handleChange} style={formStyles.input} />
         </div>
-
         <div style={formStyles.formGroup}>
           <label htmlFor="age" style={formStyles.label}>Yaş (Örn: 2 Yaşında, 6 Aylık):</label>
           <input type="text" id="age" name="age" value={formData.age} onChange={handleChange} style={formStyles.input} placeholder="Örn: 2 Yaşında"/>
         </div>
-
         <div style={formStyles.formGroup}>
           <label htmlFor="gender" style={formStyles.label}>Cinsiyet:*</label>
           <select id="gender" name="gender" value={formData.gender} onChange={handleChange} style={formStyles.select} required >
             <option value="Dişi">Dişi</option> <option value="Erkek">Erkek</option>
           </select>
         </div>
-
         <div style={formStyles.formGroup}>
           <label htmlFor="description" style={formStyles.label}>Açıklama:</label>
           <textarea id="description" name="description" value={formData.description} onChange={handleChange} style={formStyles.textarea} />
         </div>
-
         <div style={formStyles.formGroup}>
           <label htmlFor="imageUrl" style={formStyles.label}>Ana Resim URL'si:</label>
           <input type="url" id="imageUrl" name="imageUrl" value={formData.imageUrl} onChange={handleChange} style={formStyles.input} placeholder="https://example.com/ana-resim.jpg" />
         </div>
-
         <div style={formStyles.formGroup}>
           <label htmlFor="photoUrlsInput" style={formStyles.label}>Galeri Resim URL'leri (Virgülle ayırın):</label>
           <textarea id="photoUrlsInput" name="photoUrlsInput" value={formData.photoUrlsInput} onChange={handleChange} style={formStyles.textarea} placeholder="https://example.com/resim1.jpg, https://example.com/resim2.jpg" />
         </div>
-
         <div style={formStyles.formGroup}>
           <label htmlFor="needs" style={formStyles.label}>Temel İhtiyaçlar (Virgülle ayırın):</label>
           <input type="text" id="needs" name="needs" value={formData.needs} onChange={handleChange} style={formStyles.input} placeholder="Özel mama, Günlük ilaç, Oyuncak" />
         </div>
-
         <div style={{ textAlign: 'center' }}>
             <button type="submit" style={loadingSubmit ? {...formStyles.button, ...formStyles.buttonDisabled} : formStyles.button} disabled={loadingSubmit || loadingShelters || (isEditMode && loadingInitialData)}>
             {loadingSubmit ? (isEditMode ? 'Güncelleniyor...' : 'Ekleniyor...') : (isEditMode ? 'Hayvanı Güncelle' : 'Hayvanı Ekle')}
