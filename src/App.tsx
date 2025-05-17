@@ -1,16 +1,14 @@
 // src/App.tsx
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react'; // React import removed
 import AddAnimalForm from './components/AddAnimalForm';
 import AddShelterForm from './components/AddShelterForm';
 import ShelterList from './components/ShelterList';
 import AnimalList from './components/AnimalList';
 import LoginForm from './components/LoginForm';
 
-// ----- 🔥 FIREBASE IMPORTLARI - LÜTFEN KONTROL EDİN VE YAPILANDIRIN 🔥 -----
 import { authAdmin } from './firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import type { User as FirebaseUser } from 'firebase/auth'; // DÜZELTME: Tip-sadece import
-// ----- 🔥 FIREBASE IMPORTLARI BİTİŞ 🔥 -----
+import type { User as FirebaseUser } from 'firebase/auth';
 
 type AdminView =
   | 'listShelters'
@@ -36,8 +34,8 @@ const appStyles = {
 };
 
 function App() {
-  const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null); // Kullanılacak
-  const [loadingAuth, setLoadingAuth] = useState(true); // Kullanılacak
+  const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
+  const [loadingAuth, setLoadingAuth] = useState(true);
 
   const [currentView, setCurrentView] = useState<AdminView>('login');
   const [editingShelterId, setEditingShelterId] = useState<string | null>(null);
@@ -56,17 +54,15 @@ function App() {
       }
     });
     return () => unsubscribe();
-  }, [currentView]); // currentView bağımlılıklara eklendi, çünkü login sonrası yönlendirme için önemli
+  }, [currentView]);
 
   const handleLogout = async () => {
     try {
         await signOut(authAdmin);
-      // setCurrentUser(null); // onAuthStateChanged bunu zaten yapacak
-      // setCurrentView('login'); // onAuthStateChanged bunu zaten yapacak
       console.log('Çıkış başarılı!');
     } catch (error) {
       console.error('Çıkış hatası:', error);
-      window.alert('Hata: Çıkış yapılırken bir sorun oluştu.'); // DÜZELTME: Alert -> window.alert
+      window.alert('Hata: Çıkış yapılırken bir sorun oluştu.');
     }
   };
 
@@ -75,7 +71,7 @@ function App() {
     setCurrentView('editShelter');
   };
 
-  const handleEditAnimal = (animalId: string) => { // Artık kullanılacak
+  const handleEditAnimal = (animalId: string) => {
     setEditingAnimalId(animalId);
     setCurrentView('editAnimal');
   };
@@ -90,15 +86,21 @@ function App() {
     }
   };
 
-  const handleMouseEnter = (e: React.MouseEvent<HTMLButtonElement>) => { /* ... */ };
-  const handleMouseLeave = (e: React.MouseEvent<HTMLButtonElement>) => { /* ... */ };
+  // DÜZELTME: Kullanılmayan 'e' parametreleri kaldırıldı ve event tipi basitleştirildi.
+  // Bu fonksiyonlar sadece stil değişikliği yaptığı için event objesine ihtiyaç duymuyor.
+  // Daha iyi hover efektleri için CSS class'ları tercih edilebilir.
+  const handleMouseEnter = (target: HTMLButtonElement) => {
+    if (target.style.backgroundColor !== 'rgb(41, 128, 185)') { target.style.backgroundColor = '#2c81b8'; }
+  };
+  const handleMouseLeave = (target: HTMLButtonElement) => {
+     if (target.style.backgroundColor !== 'rgb(41, 128, 185)') { target.style.backgroundColor = 'transparent'; }
+  };
 
   const renderActiveView = () => {
     if (currentView === 'login') {
       return <LoginForm onLoginSuccess={() => setCurrentView('listShelters')} />;
     }
-    // Giriş yapılmamışsa ve login ekranında değilse (güvenlik önlemi, onAuthStateChanged zaten yönlendirmeli)
-    if (!currentUser) {
+    if (!currentUser) { // Kullanıcı yoksa ve login ekranında değilse (ekstra güvenlik)
         return <LoginForm onLoginSuccess={() => setCurrentView('listShelters')} />;
     }
 
@@ -132,8 +134,8 @@ function App() {
           <button
             onClick={handleLogout}
             style={{...appStyles.navButton, ...appStyles.logoutButton}}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
+            onMouseEnter={(e) => handleMouseEnter(e.currentTarget)}
+            onMouseLeave={(e) => handleMouseLeave(e.currentTarget)}
           >
             Çıkış Yap ({currentUser.email || currentUser.displayName || 'Admin'})
           </button>
@@ -141,10 +143,10 @@ function App() {
       </header>
       {currentUser && (
       <nav style={appStyles.nav}>
-        <button style={currentView === 'listShelters' || currentView === 'editShelter' ? {...appStyles.navButton, ...appStyles.navButtonActive} : appStyles.navButton} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} onClick={() => { setCurrentView('listShelters'); setEditingShelterId(null); setEditingAnimalId(null);}}>Barınak Listesi</button>
-        <button style={currentView === 'addShelter' ? {...appStyles.navButton, ...appStyles.navButtonActive} : appStyles.navButton} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} onClick={() => { setCurrentView('addShelter'); setEditingShelterId(null); setEditingAnimalId(null);}}>Yeni Barınak Ekle</button>
-        <button style={currentView === 'listAnimals' || currentView === 'editAnimal' ? {...appStyles.navButton, ...appStyles.navButtonActive} : appStyles.navButton} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} onClick={() => { setCurrentView('listAnimals'); setEditingShelterId(null); setEditingAnimalId(null);}}>Hayvan Listesi</button>
-        <button style={currentView === 'addAnimal' ? {...appStyles.navButton, ...appStyles.navButtonActive} : appStyles.navButton} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} onClick={() => { setCurrentView('addAnimal'); setEditingShelterId(null); setEditingAnimalId(null);}}>Yeni Hayvan Ekle</button>
+        <button style={currentView === 'listShelters' || currentView === 'editShelter' ? {...appStyles.navButton, ...appStyles.navButtonActive} : appStyles.navButton} onMouseEnter={(e) => handleMouseEnter(e.currentTarget)} onMouseLeave={(e) => handleMouseLeave(e.currentTarget)} onClick={() => { setCurrentView('listShelters'); setEditingShelterId(null); setEditingAnimalId(null);}}>Barınak Listesi</button>
+        <button style={currentView === 'addShelter' ? {...appStyles.navButton, ...appStyles.navButtonActive} : appStyles.navButton} onMouseEnter={(e) => handleMouseEnter(e.currentTarget)} onMouseLeave={(e) => handleMouseLeave(e.currentTarget)} onClick={() => { setCurrentView('addShelter'); setEditingShelterId(null); setEditingAnimalId(null);}}>Yeni Barınak Ekle</button>
+        <button style={currentView === 'listAnimals' || currentView === 'editAnimal' ? {...appStyles.navButton, ...appStyles.navButtonActive} : appStyles.navButton} onMouseEnter={(e) => handleMouseEnter(e.currentTarget)} onMouseLeave={(e) => handleMouseLeave(e.currentTarget)} onClick={() => { setCurrentView('listAnimals'); setEditingShelterId(null); setEditingAnimalId(null);}}>Hayvan Listesi</button>
+        <button style={currentView === 'addAnimal' ? {...appStyles.navButton, ...appStyles.navButtonActive} : appStyles.navButton} onMouseEnter={(e) => handleMouseEnter(e.currentTarget)} onMouseLeave={(e) => handleMouseLeave(e.currentTarget)} onClick={() => { setCurrentView('addAnimal'); setEditingShelterId(null); setEditingAnimalId(null);}}>Yeni Hayvan Ekle</button>
       </nav>
       )}
       <main style={appStyles.mainContent}>
