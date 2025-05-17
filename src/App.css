@@ -1,10 +1,82 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+/* src/index.css veya src/App.css */
+
+/* Temel Font ve Renk Ayarları (App.tsx'deki stillerle uyumlu hale getirildi) */
+:root {
+  font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* App.tsx ile aynı font ailesi */
+  line-height: 1.6; /* Okunabilirlik için satır yüksekliği */
+  font-weight: 400;
+
+  color-scheme: light; /* Varsayılan olarak açık tema */
+  color: #333; /* App.tsx'deki ana yazı rengi */
+  background-color: #f4f7f6; /* App.tsx'deki ana arka plan rengi */
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
+/* Body için temel sıfırlamalar */
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  /* display: flex ve place-items: center kaldırıldı, App.tsx düzeni yönetecek */
+}
+
+/* #root için temel ayar (genellikle React uygulamalarında tüm içeriği sarar) */
+#root {
+  min-height: 100vh; /* Tüm yüksekliği kaplaması için */
+  display: flex; /* App.tsx'in en dış container'ının flex özelliklerini desteklemesi için */
+  flex-direction: column; /* App.tsx'in en dış container'ının flex özelliklerini desteklemesi için */
+  /* max-width, margin: auto, padding, text-align kaldırıldı, App.tsx'deki mainContent yönetecek */
+}
+
+/* Genel başlık stilleri (isteğe bağlı, App.tsx'de zaten tanımlı) */
+/* h1 {
+  font-size: 2.2em; // App.tsx'deki headerTitle ile uyumlu olabilir
+  line-height: 1.2;
+  color: #2c3e50; // App.tsx'deki headerTitle rengi
+} */
+
+/* Genel link stilleri */
+a {
+  font-weight: 500;
+  color: #007bff; /* App.tsx'deki primary color ile uyumlu */
+  text-decoration: inherit;
+}
+a:hover {
+  color: #0056b3; /* App.tsx'deki primaryDark color ile uyumlu */
+}
+
+/* Genel buton stilleri (App.tsx ve formlardaki butonlar bunları ezecektir) */
+/* Bu genel buton stilini, eğer stil atanmamış butonlarınız varsa ve
+   onlara varsayılan bir görünüm kazandırmak istiyorsanız tutabilirsiniz.
+   Ancak, tüm butonları bileşen bazında stillendirmek daha kontrollü olabilir. */
+/*
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #f0f0f0; // Açık tema için varsayılan buton rengi
+  color: #333;
+  cursor: pointer;
+  transition: border-color 0.25s, background-color 0.25s;
+}
+button:hover {
+  border-color: #007bff;
+  background-color: #e9e9e9;
+}
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+*/
+
+/* Logo ve diğer spesifik animasyon/stil tanımlamaları (projenizde kullanılıyorsa kalabilir) */
 .logo {
   height: 6em;
   padding: 1.5em;
@@ -28,15 +100,42 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
+  /* Eğer dönen bir logo kullanıyorsanız bu kalabilir */
+  /* a:nth-of-type(2) .logo {
     animation: logo-spin infinite 20s linear;
-  }
+  } */
 }
 
-.card {
+.card { /* Eğer genel bir card bileşeniniz varsa bu stil kullanılabilir */
   padding: 2em;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
 
-.read-the-docs {
+.read-the-docs { /* Vite'nin varsayılan stilinden kalma, projenizde kullanılmıyorsa kaldırılabilir */
   color: #888;
 }
+
+/*
+  Koyu tema için @media (prefers-color-scheme: dark) bloğu,
+  eğer App.tsx içinde tema yönetimi yapıyorsanız ve sadece açık tema
+  kullanacaksanız kaldırılabilir veya App.tsx'deki tema mantığıyla
+  entegre edilebilir (CSS değişkenleri kullanarak).
+  Şimdilik App.tsx'in açık temasının baskın olması için bu bloğu
+  yorum satırı yapıyorum veya kaldırıyorum.
+*/
+/*
+@media (prefers-color-scheme: dark) {
+  :root {
+    color: rgba(255, 255, 255, 0.87);
+    background-color: #242424;
+  }
+  a:hover {
+    color: #747bff;
+  }
+  button {
+    background-color: #1a1a1a;
+  }
+}
+*/
