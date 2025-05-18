@@ -1,15 +1,16 @@
 // src/App.tsx
-import { useState, useEffect } from 'react'; // DÜZELTME: React importu kaldırıldı
+import { useState, useEffect } from 'react'; // React importu kaldırıldı (Modern JSX transformu ile gereksiz)
 import AddAnimalForm from './components/AddAnimalForm';
 import AddShelterForm from './components/AddShelterForm';
 import ShelterList from './components/ShelterList';
 import AnimalList from './components/AnimalList';
 import LoginForm from './components/LoginForm';
+import PriceManagementForm from './components/PriceManagementForm'; // PriceManagementForm import edildi
 import AnimalDonationsModal from './components/AnimalDonationsModal';
 
-import { authAdmin } from './firebase';
+import { authAdmin } from './firebase'; // Firebase Auth importunuz
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import type { User as FirebaseUser } from 'firebase/auth';
+import type { User as FirebaseUser } from 'firebase/auth'; // Firebase User tipi
 
 type AdminView =
   | 'listShelters'
@@ -18,9 +19,11 @@ type AdminView =
   | 'listAnimals'
   | 'addAnimal'
   | 'editAnimal'
+  | 'managePrices' // Fiyat yönetimi için eklendi
   | 'login'
-  | 'none'; // viewAnimalDonations kaldırıldı, modal ile yönetilecek
+  | 'none';
 
+// Stil tanımlamaları component fonksiyonunun dışına taşındı
 const appStyles = {
     container: { fontFamily: "'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif", color: '#333', minHeight: '100vh', backgroundColor: '#eef1f5', display: 'flex', flexDirection: 'column' as const, },
     header: { backgroundColor: '#ffffff', padding: '20px 30px', color: '#2c3e50', textAlign: 'center' as const, boxShadow: '0 2px 8px rgba(0,0,0,0.08)', borderBottom: '1px solid #dde2e7', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
@@ -49,14 +52,14 @@ function App() {
       setLoadingAuth(false);
       if (user) {
         if (currentView === 'login' || currentView === 'none') {
-            setCurrentView('listShelters');
+            setCurrentView('listShelters'); // Giriş yapınca varsayılan görünüm
         }
       } else {
         setCurrentView('login');
       }
     });
     return () => unsubscribe();
-  }, [currentView]); // currentView bağımlılığı, login sonrası yönlendirme için eklendi
+  }, [currentView]); // currentView bağımlılığı, login sonrası doğru yönlendirme için önemli olabilir.
 
   const handleLogout = async () => {
       try { await signOut(authAdmin); console.log('Çıkış başarılı!');}
@@ -65,40 +68,40 @@ function App() {
   const handleEditShelter = (shelterId: string) => { setEditingShelterId(shelterId); setCurrentView('editShelter'); };
   const handleEditAnimal = (animalId: string) => { setEditingAnimalId(animalId); setCurrentView('editAnimal'); };
 
-  const handleFormClose = (entityType: 'shelter' | 'animal') => {
+  const handleFormClose = (entityType: 'shelter' | 'animal' | 'prices') => { // 'prices' eklendi
     setEditingShelterId(null);
     setEditingAnimalId(null);
-    if (entityType === 'shelter') {
-      setCurrentView('listShelters');
-    } else if (entityType === 'animal') {
-      setCurrentView('listAnimals');
-    }
+    setViewingDonationsForAnimal(null); // Herhangi bir form kapandığında bunu da sıfırla
+    if (entityType === 'shelter') { setCurrentView('listShelters'); }
+    else if (entityType === 'animal') { setCurrentView('listAnimals'); }
+    else if (entityType === 'prices') { setCurrentView('listShelters'); /* Fiyat yönetiminden sonra varsayılan görünüme dön */ }
   };
 
   const handleViewAnimalDonations = (animalId: string, animalName?: string) => {
     setViewingDonationsForAnimal({ id: animalId, name: animalName });
+    // Modal doğrudan render edileceği için currentView'ı değiştirmeye gerek yok
   };
 
   const closeDonationsModal = () => {
     setViewingDonationsForAnimal(null);
   };
 
-  // DÜZELTME: handleMouseEnter ve handleMouseLeave fonksiyonları eventTarget parametresini kullanacak şekilde güncellendi
-  const handleMouseEnter = (eventTarget: HTMLButtonElement) => {
+  const handleMouseEnter = (eventTarget: HTMLButtonElement) => { // eventTarget tipi belirtildi
     if (eventTarget.style.backgroundColor !== 'rgb(41, 128, 185)') { eventTarget.style.backgroundColor = '#2c81b8'; }
   };
-  const handleMouseLeave = (eventTarget: HTMLButtonElement) => {
+  const handleMouseLeave = (eventTarget: HTMLButtonElement) => { // eventTarget tipi belirtildi
      if (eventTarget.style.backgroundColor !== 'rgb(41, 128, 185)') { eventTarget.style.backgroundColor = 'transparent'; }
   };
 
   const renderActiveView = () => {
-    if (!currentUser && currentView !== 'login') {
+    if (!currentUser && currentView !== 'login') { // Kullanıcı yoksa ve login ekranında değilse, login'e zorla
         return <LoginForm onLoginSuccess={() => setCurrentView('listShelters')} />;
     }
     if (currentView === 'login') {
       return <LoginForm onLoginSuccess={() => setCurrentView('listShelters')} />;
     }
 
+    // currentUser null değilse devam et
     switch (currentView) {
       case 'listShelters':
         return <ShelterList onEditShelter={handleEditShelter} />;
@@ -112,8 +115,12 @@ function App() {
         return <AddAnimalForm onFormClose={() => handleFormClose('animal')} />;
       case 'editAnimal':
         return <AddAnimalForm animalIdToEdit={editingAnimalId} onFormClose={() => handleFormClose('animal')} />;
+      case 'managePrices':
+        return <PriceManagementForm />; // onFormClose eklenebilir: onFormClose={() => handleFormClose('prices')}
       default:
-        return <p style={{textAlign: 'center', fontSize: '1.1em', marginTop: '40px'}}>Lütfen bir işlem seçin.</p>;
+        // Varsayılan olarak barınak listesini göster (veya bir dashboard)
+        if (currentUser) return <ShelterList onEditShelter={handleEditShelter} />;
+        return <LoginForm onLoginSuccess={() => setCurrentView('listShelters')} />; // Güvenlik için
     }
   };
 
@@ -131,19 +138,25 @@ function App() {
         <button style={currentView === 'addShelter' ? {...appStyles.navButton, ...appStyles.navButtonActive} : appStyles.navButton} onMouseEnter={(e) => handleMouseEnter(e.currentTarget)} onMouseLeave={(e) => handleMouseLeave(e.currentTarget)} onClick={() => { setCurrentView('addShelter'); setEditingShelterId(null); setEditingAnimalId(null); setViewingDonationsForAnimal(null);}}>Yeni Barınak Ekle</button>
         <button style={currentView.startsWith('listAnimals') || currentView === 'editAnimal' ? {...appStyles.navButton, ...appStyles.navButtonActive} : appStyles.navButton} onMouseEnter={(e) => handleMouseEnter(e.currentTarget)} onMouseLeave={(e) => handleMouseLeave(e.currentTarget)} onClick={() => { setCurrentView('listAnimals'); setEditingShelterId(null); setEditingAnimalId(null); setViewingDonationsForAnimal(null);}}>Hayvan Listesi</button>
         <button style={currentView === 'addAnimal' ? {...appStyles.navButton, ...appStyles.navButtonActive} : appStyles.navButton} onMouseEnter={(e) => handleMouseEnter(e.currentTarget)} onMouseLeave={(e) => handleMouseLeave(e.currentTarget)} onClick={() => { setCurrentView('addAnimal'); setEditingShelterId(null); setEditingAnimalId(null); setViewingDonationsForAnimal(null);}}>Yeni Hayvan Ekle</button>
+        <button
+          style={currentView === 'managePrices' ? {...appStyles.navButton, ...appStyles.navButtonActive} : appStyles.navButton}
+          onMouseEnter={(e) => handleMouseEnter(e.currentTarget)}
+          onMouseLeave={(e) => handleMouseLeave(e.currentTarget)}
+          onClick={() => { setCurrentView('managePrices'); setEditingShelterId(null); setEditingAnimalId(null); setViewingDonationsForAnimal(null);}}
+        >
+          Fiyat Yönetimi
+        </button>
       </nav>
       )}
       <main style={appStyles.mainContent}>
         {renderActiveView()}
       </main>
-
       <AnimalDonationsModal
         animalId={viewingDonationsForAnimal?.id || null}
         animalName={viewingDonationsForAnimal?.name || null}
         isVisible={!!viewingDonationsForAnimal}
         onClose={closeDonationsModal}
       />
-
       <footer style={appStyles.footer}>
         <p>&copy; {new Date().getFullYear()} Sosyal Bağış Platformu</p>
       </footer>
